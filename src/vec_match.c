@@ -8,12 +8,12 @@
 #define SQUARE(a) ((a)*(a))
 
 bool vec_match(const float *data,
-					const float *ref,
-					uint32_t length,
-					uint8_t drift_x,
-					float offset_y,
-					float *envl_match_error,
-					float *abs_match_error)
+			   const float *ref,
+			   uint32_t length,
+			   uint8_t drift_x,
+			   float offset_y,
+			   float *envl_match_error,
+			   float *abs_match_error)
 {
 	int a, b;
 
