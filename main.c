@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "vec_match.h"
+#include "src/vec_match.h"
 
 #define DATA_LEN 11
 
