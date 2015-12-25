@@ -21,6 +21,8 @@ static float data_cprs[16] = {
 
 static float data_cprs2[16];
 
+static float data_cprs3[16];
+
 int main(void)
 {
 	for (int i = 0; i < 16; i++) {
@@ -33,6 +35,14 @@ int main(void)
 
 	for (int i = 0; i < len; i++) {
 		printf("%.1f, ", data_cprs2[i]);
+	}
+	printf("\n");
+
+	len = vec_unpack(data_cprs3, 16, data_cprs2, len);
+	printf("unpacked len = %d\n", len);
+
+	for (int i = 0; i < len; i++) {
+		printf("%.1f, ", data_cprs3[i]);
 	}
 	printf("\n");
 

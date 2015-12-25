@@ -22,11 +22,7 @@ typedef struct {
  * @param abs_match_error error metric calculated from raw data (can be used if envelope match passes)
  * @return envelope match status (match using drift and offset)
  */
-bool vec_match(const float *data,
-			   const float *ref,
-			   const vec_match_cfg_t *cfg,
-			   float *fuzzy_match_error,
-			   float *abs_match_error);
+bool vec_match(const float *data, const float *ref, const vec_match_cfg_t *cfg, float *fuzzy_match_error, float *abs_match_error);
 
 
 /**
@@ -37,11 +33,7 @@ bool vec_match(const float *data,
  *
  * Params otherwise the same as vec_match()
  */
-bool vec_match_packed(const float *data,
-					const float *ref,
-					const vec_match_cfg_t *cfg,
-					float *fuzzy_match_error,
-					float *abs_match_error);
+bool vec_match_packed(const float *data, const float *ref, const vec_match_cfg_t *cfg, float *fuzzy_match_error, float *abs_match_error);
 
 
 /**
@@ -59,11 +51,7 @@ bool vec_match_packed(const float *data,
  * @param threshold max value to be considered zero in the compression
  * @return length of result vector
  */
-uint32_t vec_pack(float *result,
-					  uint32_t result_capacity,
-					  const float *data,
-					  uint32_t length,
-					  float threshold);
+uint32_t vec_pack(float *result, uint32_t result_capacity, const float *data, uint32_t length, float threshold);
 
 
 /**
@@ -78,7 +66,4 @@ uint32_t vec_pack(float *result,
  * @param compr_length compressed data vector length
  * @return
  */
-uint32_t vec_unpack(float *result,
-					uint32_t result_capacity,
-					const float *compr_data,
-					uint32_t compr_length);
+uint32_t vec_unpack(float *result, uint32_t result_capacity, const float *compr_data, uint32_t compr_length);

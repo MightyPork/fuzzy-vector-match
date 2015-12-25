@@ -8,11 +8,14 @@
 
 #define SQUARE(a) ((a)*(a))
 
-bool vec_match(const float *data,
-			   const float *ref,
-			   const vec_match_cfg_t *cfg,
-			   float *fuzzy_match_error,
-			   float *abs_match_error)
+#define F2ZEROES(f) roundf(-(f))
+#define ZEROES2F(z) (0.0f - z)
+
+
+bool vec_match_do(const float *data, const float *ref,
+				  const vec_match_cfg_t *cfg,
+				  float *fuzzy_match_error, float *abs_match_error,
+				  bool packed)
 {
 	int a, b;
 
@@ -67,8 +70,24 @@ bool vec_match(const float *data,
 
 
 
+bool vec_match(const float *data, const float *ref, const vec_match_cfg_t *cfg,
+			   float *fuzzy_match_error, float *abs_match_error)
+{
+	return vec_match_do(data, ref, cfg, fuzzy_match_error, abs_match_error, false);
+}
 
-uint32_t vec_pack(float *result, uint32_t result_capacity, const float *data, uint32_t data_length, float threshold)
+
+
+bool vec_match_packed(const float *data, const float *ref, const vec_match_cfg_t *cfg,
+					  float *fuzzy_match_error, float *abs_match_error)
+{
+	return vec_match_do(data, ref, cfg, fuzzy_match_error, abs_match_error, true);
+}
+
+
+
+uint32_t vec_pack(float *result, uint32_t result_capacity,
+				  const float *data, uint32_t data_length, float threshold)
 {
 	uint32_t result_len = 0;
 	uint32_t zeroes = 0;
@@ -80,7 +99,7 @@ uint32_t vec_pack(float *result, uint32_t result_capacity, const float *data, ui
 			// write zero marker to result
 			if (zeroes) {
 				if (result_len < result_capacity) {
-					result[result_len] = 0.0f - zeroes; // float and negative
+					result[result_len] = ZEROES2F(zeroes); // float and negative
 				}
 
 				zeroes = 0;
@@ -109,4 +128,29 @@ uint32_t vec_pack(float *result, uint32_t result_capacity, const float *data, ui
 
 
 
+
+uint32_t vec_unpack(float *result, uint32_t result_capacity,
+					const float *compr_data, uint32_t compr_length)
+{
+	uint32_t idx = 0;
+
+	for (uint32_t i = 0; i < compr_length; i++) {
+		if (compr_data[i] < 0) {
+			uint32_t zeroes = F2ZEROES(compr_data[i]);
+			for (uint32_t j = 0; j < zeroes; j++) {
+				if (idx < result_capacity) {
+					result[idx] = 0;
+				}
+				idx++;
+			}
+		} else {
+			if (idx < result_capacity) {
+				result[idx] = compr_data[i];
+			}
+			idx++;
+		}
+	}
+
+	return idx;
+}
 
