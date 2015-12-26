@@ -201,7 +201,7 @@ uint32_t vec_pack(float *result, uint32_t result_capacity,
 
 
 
-uint32_t vec_pack_fit(float *result, uint32_t result_capacity,
+uint32_t vec_pack_auto(float *result, uint32_t result_capacity,
 				  const float *data, uint32_t data_length, float *threshold_p)
 {
 	float thr = 0;
