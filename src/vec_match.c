@@ -79,6 +79,7 @@ bool vec_match(const float *data, const float *ref,
 }
 
 
+
 bool vec_match_packed(const float *data, const float *ref_packed, uint32_t ref_p_len,
 					  const vec_match_cfg_t *cfg,
 					  float *fuzzy_match_error, float *abs_match_error)
@@ -222,6 +223,7 @@ uint32_t vec_pack_fit(float *result, uint32_t result_capacity,
 }
 
 
+
 uint32_t vec_unpack(float *result, uint32_t result_capacity,
 					const float *compr_data, uint32_t compr_length)
 {
@@ -264,6 +266,7 @@ void pw_init(pack_walker_t *wlkr, const float *packed_vec, uint32_t packed_len)
 }
 
 
+
 // rewind the struct to first entry, handle leading zero(s)
 void pw_rewind(pack_walker_t *w)
 {
@@ -279,6 +282,7 @@ void pw_rewind(pack_walker_t *w)
 		w->p_zero_n = 0;
 	}
 }
+
 
 
 // get value at index in packed vector
