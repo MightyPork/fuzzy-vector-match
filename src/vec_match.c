@@ -15,82 +15,19 @@
 #define ZERO2F(z) (0.0f - z)
 
 
-bool vec_match(const float *data, const float *ref,
-			   const vec_match_cfg_t *cfg,
-			   float *fuzzy_match_error, float *abs_match_error)
-{
-	int a, b;
 
-	int err_cnt = 0;
-	float env_err = 0;
-	float abs_err = 0;
-
-	for (uint32_t i = 0; i < cfg->length; i++) {
-		float peak = FLT_MIN;
-		float base = FLT_MAX;
-
-		// bounds for base and peak search
-		if (i < cfg->drift_x) {
-			a = 0;
-		} else {
-			a = i - cfg->drift_x;
-		}
-
-		if (i + cfg->drift_x >= cfg->length) {
-			b = cfg->length - 1;
-		} else {
-			b = i + cfg->drift_x;
-		}
-
-		// find base and peak
-		for (int j = a; j <= b; j++) {
-			if (peak < ref[j]) peak = ref[j];
-			if (base > ref[j]) base = ref[j];
-		}
-
-		// apply drift_y
-		peak += cfg->offset_y; // add abs threshold on top
-		base -= cfg->offset_y;
-
-
-		// ignore abs threshold difference (float precision error)
-		if (fabs(ref[i] - data[i]) > cfg->abs_threshold) {
-			abs_err += SQ(ref[i] - data[i]);
-		}
-
-
-		if (data[i] >= (base - cfg->abs_threshold) && data[i] <= (peak + cfg->abs_threshold)) {
-			// within limits
-			continue;
-		} else {
-			//printf("data[%d] out of range: %f, [%f ; %f]\n", i, data[i], base, peak);
-
-			if (data[i] < base) env_err += SQ(base - data[i]);
-			if (data[i] > peak) env_err += SQ(data[i] - peak);
-
-			err_cnt++;
-		}
-	}
-
-	// write error values to provided fields
-	if (fuzzy_match_error != NULL) *fuzzy_match_error = env_err;
-	if (abs_match_error != NULL) *abs_match_error = abs_err;
-
-	return err_cnt == 0;
-}
-
-
-
-bool vec_match_packed(const float *data, const float *ref_packed, uint32_t ref_p_len,
-					  const vec_match_cfg_t *cfg,
-					  float *fuzzy_match_error, float *abs_match_error)
+bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
+				  const vec_match_cfg_t *cfg,
+				  float *fuzzy_match_error, float *abs_match_error, bool packed)
 {
 	uint32_t a, b;
 	float f; // tmp float
 
 	pack_walker_t w; // walker
 
-	pw_init(&w, ref_packed, ref_p_len);
+	if (packed) {
+		pw_init(&w, ref, ref_p_len);
+	}
 
 	int err_cnt = 0;
 	float env_err = 0;
@@ -116,13 +53,22 @@ bool vec_match_packed(const float *data, const float *ref_packed, uint32_t ref_p
 		}
 
 		// find base and peak
-		for (uint32_t j = a; j <= b; j++) {
-			f = pw_get(&w, j);
-			if (peak < f) peak = f;
-			if (base > f) base = f;
-		}
+		if (packed) {
+			for (uint32_t j = a; j <= b; j++) {
+				f = pw_get(&w, j);
+				if (peak < f) peak = f;
+				if (base > f) base = f;
+			}
 
-		ref_at = pw_get(&w, i);
+			ref_at = pw_get(&w, i);
+		} else {
+			for (uint32_t j = a; j <= b; j++) {
+				if (peak < ref[j]) peak = ref[j];
+				if (base > ref[j]) base = ref[j];
+			}
+
+			ref_at = ref[i];
+		}
 
 
 		// apply drift_y
@@ -154,6 +100,25 @@ bool vec_match_packed(const float *data, const float *ref_packed, uint32_t ref_p
 
 	return err_cnt == 0;
 }
+
+
+
+bool vec_match(const float *data, const float *ref,
+			   const vec_match_cfg_t *cfg,
+			   float *fuzzy_match_error, float *abs_match_error)
+{
+	return vec_match_do(data, ref, cfg->length, cfg, fuzzy_match_error, abs_match_error, false);
+}
+
+
+
+bool vec_match_packed(const float *data, const float *ref, uint32_t ref_p_len,
+					  const vec_match_cfg_t *cfg,
+					  float *fuzzy_match_error, float *abs_match_error)
+{
+	return vec_match_do(data, ref, ref_p_len, cfg, fuzzy_match_error, abs_match_error, true);
+}
+
 
 
 // ---- PACKING UTILS ----
