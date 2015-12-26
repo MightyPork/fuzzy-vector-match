@@ -5,7 +5,7 @@
 #include "src/vec_match.h"
 
 #define DATA_LEN 16
-#define REF_LEN 8
+#define REF_LEN 10
 
 static float reference[DATA_LEN] = {
 	//0, 10, 20, 30, 40, 50, 40, 30, 20, 10, 0
@@ -14,7 +14,7 @@ static float reference[DATA_LEN] = {
 
 static float data[DATA_LEN] = {
 	//0, 10, 20, 30, 40, 50, 50, 35, 15, 15, 0
-	0, 15.7, 0, 0, 0.1, 0.2, 0.1, 10, 24.242, 0, 0, 2, 0.2, 0.4, 0.5, 0
+	0, 15.7, 0, 0, 0.1, 0.2, 0.1, 10, 24, 0, 2, 2, 0.2, 0.4, 0.5, 0
 };
 
 static float ref_p[REF_LEN];
@@ -108,7 +108,7 @@ int main(void)
 	printf("Error rate: ENV %.2f, ABS %.2f\n", env_e, abs_e);
 
 	float thr;
-	int ref_pack_len = vec_pack_fit(ref_p, REF_LEN, reference, DATA_LEN, &thr);
+	int ref_pack_len = vec_pack_auto(ref_p, REF_LEN, reference, DATA_LEN, &thr);
 
 	printf("Reference packed with zero threshold %.1f to %d items.\n", thr, ref_pack_len);
 	printf("REF packed:  ");

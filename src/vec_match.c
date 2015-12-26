@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
+#include <string.h>
 
 #include "vec_match.h"
 
@@ -202,23 +203,43 @@ uint32_t vec_pack(float *result, uint32_t result_capacity,
 
 
 uint32_t vec_pack_auto(float *result, uint32_t result_capacity,
-				  const float *data, uint32_t data_length, float *threshold_p)
+					   const float *data, uint32_t data_length, float *threshold_p)
 {
-	float thr = 0;
+	// lossless case, all fits
+	if (data_length <= result_capacity) {
+		*threshold_p = 0;
+		memcpy(result, data, data_length * sizeof(float));
+		return data_length;
+	}
+
+
+	float thr = 0.1;
 	uint32_t ref_pack_len;
 
-	// TODO use smarter algorithm
-
-	while(true) {
+	while (true) {
 		ref_pack_len = vec_pack(result, result_capacity, data, data_length, thr);
-		printf("try %f -> %d\n", thr, ref_pack_len);//FIXME remove
+
+		//printf("try %f -> %d\n", thr, ref_pack_len);
 
 		if (ref_pack_len <= result_capacity) {
 			if (threshold_p != NULL) *threshold_p = thr;
-			return result_capacity;
-		}
+			return ref_pack_len;
+		} else {
+			float r = (result_capacity / (float)ref_pack_len);
 
-		thr += 0.1f;
+			// experimental values, adjust to best fit your use case
+			if (r < 0.5) {
+				thr += 0.8;
+			} else if (r < 0.6) {
+				thr += 0.5;
+			} else if (r < 0.75) {
+				thr += 0.4;
+			} else if (r < 0.90) {
+				thr += 0.25;
+			} else {
+				thr += 0.1;
+			}
+		}
 	}
 }
 

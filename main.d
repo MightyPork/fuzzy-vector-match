@@ -24,4 +24,4 @@ main.out: src/vec_match.c /usr/include/stdc-predef.h \
  /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
  /usr/include/bits/inf.h /usr/include/bits/nan.h \
  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
- src/vec_match.h
+ /usr/include/string.h /usr/include/xlocale.h src/vec_match.h
