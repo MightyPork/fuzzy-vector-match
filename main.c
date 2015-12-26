@@ -14,7 +14,7 @@ static float reference[DATA_LEN] = {
 
 static float data[DATA_LEN] = {
 	//0, 10, 20, 30, 40, 50, 50, 35, 15, 15, 0
-	0, 13, 16, 0, 0.1, 0.2, 10, 0, 24, 0, 0, 7, 12, 0.4, 0.5, 0
+	0, 15.7, 0, 0, 0.3, 0.2, 0.1, 7, 24.242, 7, 0, 2, 0.2, 0.4, 0.5, 0
 };
 
 static float ref_p[REF_LEN];
@@ -78,14 +78,14 @@ int main(void)
 	vec_fuzzymatch_cfg_t cfg = {
 		.length = DATA_LEN,
 		.drift_x = 1,
-		.offset_y = 1,
+		.offset_y = 0.5,
 		.abs_threshold = 0.1
 	};
 
 
 	vec_hausdorff_cfg_t cfg_hdf = {
 		.length = DATA_LEN,
-		.max_drift_x = 10,
+		.max_drift_x = 4,
 		.cost_x = 10,
 		.cost_y = 4
 	};

@@ -20,7 +20,7 @@
 
 // ---- HAUSDORFF ----
 
-// real hausdorf should just return the max distance, we sum them all
+// real hausdorf should just return the highest minimal distance, we sum them.
 float vec_hausdorff_do(const float *data,
 					   const float *ref, uint32_t ref_p_len,
 					   const vec_hausdorff_cfg_t *cfg, bool packed)
@@ -59,8 +59,7 @@ float vec_hausdorff_do(const float *data,
 			f = packed ? pw_get(&w, j) : ref[j];
 
 			// get X dist
-			g = sqrtf(SQ((f - data[i]) * cfg->cost_y) +
-					  SQ(NUM_DIST(i, j) * cfg->cost_x));
+			g = SQ((f - data[i]) * cfg->cost_y) + SQ(NUM_DIST(i, j) * cfg->cost_x);//sqrtf(
 
 			if (dist > g) dist = g;
 		}
