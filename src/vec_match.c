@@ -53,23 +53,15 @@ bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
 		}
 
 		// find base and peak
-		if (packed) {
-			for (uint32_t j = a; j <= b; j++) {
-				f = pw_get(&w, j);
-				if (peak < f) peak = f;
-				if (base > f) base = f;
-			}
 
-			ref_at = pw_get(&w, i);
-		} else {
-			for (uint32_t j = a; j <= b; j++) {
-				if (peak < ref[j]) peak = ref[j];
-				if (base > ref[j]) base = ref[j];
-			}
+		for (uint32_t j = a; j <= b; j++) {
+			f = packed ? pw_get(&w, j) : ref[j];
 
-			ref_at = ref[i];
+			if (peak < f) peak = f;
+			if (f < base) base = f;
 		}
 
+		ref_at = packed ? pw_get(&w, i) : ref[i];
 
 		// apply drift_y
 		peak += cfg->offset_y; // add abs threshold on top
@@ -94,7 +86,7 @@ bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
 		}
 	}
 
-	// write error values to provided fields
+// write error values to provided fields
 	if (fuzzy_match_error != NULL) *fuzzy_match_error = env_err;
 	if (abs_match_error != NULL) *abs_match_error = abs_err;
 
