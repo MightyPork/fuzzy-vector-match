@@ -53,12 +53,13 @@ bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
 		}
 
 		// find base and peak
-
 		for (uint32_t j = a; j <= b; j++) {
 			f = packed ? pw_get(&w, j) : ref[j];
 
 			if (peak < f) peak = f;
-			if (f < base) base = f;
+			if (f < base) {
+				base = f;
+			}
 		}
 
 		ref_at = packed ? pw_get(&w, i) : ref[i];
@@ -77,8 +78,6 @@ bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
 			// within limits
 			continue;
 		} else {
-			//printf("data[%d] out of range: %f, [%f ; %f]\n", i, data[i], base, peak);
-
 			if (data[i] < base) env_err += SQ(base - data[i]);
 			if (data[i] > peak) env_err += SQ(data[i] - peak);
 
@@ -86,7 +85,7 @@ bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
 		}
 	}
 
-// write error values to provided fields
+	// write error values to provided fields
 	if (fuzzy_match_error != NULL) *fuzzy_match_error = env_err;
 	if (abs_match_error != NULL) *abs_match_error = abs_err;
 
