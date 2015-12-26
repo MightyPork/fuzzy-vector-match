@@ -12,6 +12,38 @@ typedef struct {
 } vec_match_cfg_t;
 
 
+typedef struct {
+	const float *p_vec;
+	uint32_t p_length;
+	uint32_t real_idx; // public index
+	uint32_t p_idx;
+	uint32_t p_zero_j;
+	uint32_t p_zero_n;
+} pack_walker_t;
+
+
+/**
+ * Populate a packed vector walker (used to read values without unpacking)
+ *
+ * @param wlkr pack walker instance to populate
+ * @param packed_vec vec to walk
+ * @param packed_len packed vec len
+ */
+void pw_init(pack_walker_t *wlkr, const float *packed_vec, uint32_t packed_len);
+
+
+/**
+ * Get a value from the packed vect.
+ *
+ * Note: random access is slower than sequential
+ *
+ * @param w walker
+ * @param idx unpacked vector index to read
+ * @return value. Returns 0 if index is out of bounds.
+ */
+float pw_get(pack_walker_t *w, uint32_t idx);
+
+
 /**
  * Match signal to reference, allowing for some offser and noise
  *
@@ -22,18 +54,16 @@ typedef struct {
  * @param abs_match_error error metric calculated from raw data (can be used if envelope match passes)
  * @return envelope match status (match using drift and offset)
  */
-bool vec_match(const float *data, const float *ref, const vec_match_cfg_t *cfg, float *fuzzy_match_error, float *abs_match_error);
+bool vec_match(const float *data, const float *ref, const vec_match_cfg_t *cfg,
+			   float *fuzzy_match_error, float *abs_match_error);
 
 
 /**
- * Match vectors of positive numbers.
- * Negative number indicates how many consecutive elements are zero (hence the compression).
- *
- * 1024-long vector [12, 0, ...] would be [12, -1023]
- *
+ * Match vector against a packed reference vector (without unpacking).
  * Params otherwise the same as vec_match()
  */
-bool vec_match_packed(const float *data, const float *ref, const vec_match_cfg_t *cfg, float *fuzzy_match_error, float *abs_match_error);
+bool vec_match_packed(const float *data, const float *ref_packed, uint32_t ref_p_len,
+					  const vec_match_cfg_t *cfg, float *fuzzy_match_error, float *abs_match_error);
 
 
 /**
@@ -51,7 +81,9 @@ bool vec_match_packed(const float *data, const float *ref, const vec_match_cfg_t
  * @param threshold max value to be considered zero in the compression
  * @return length of result vector
  */
-uint32_t vec_pack(float *result, uint32_t result_capacity, const float *data, uint32_t length, float threshold);
+uint32_t vec_pack(float *result, uint32_t result_capacity,
+				  const float *data, uint32_t length,
+				  float threshold);
 
 
 /**
@@ -66,4 +98,19 @@ uint32_t vec_pack(float *result, uint32_t result_capacity, const float *data, ui
  * @param compr_length compressed data vector length
  * @return
  */
-uint32_t vec_unpack(float *result, uint32_t result_capacity, const float *compr_data, uint32_t compr_length);
+uint32_t vec_unpack(float *result, uint32_t result_capacity,
+					const float *compr_data, uint32_t compr_length);
+
+
+/**
+ * Pack to given length, adjusting threshold automatically.
+ *
+ * @param result result array
+ * @param result_capacity result max capacity
+ * @param data data to compress
+ * @param data_length data length
+ * @param threshold_p field to store the used threshold, can be NULL
+ * @return real result size
+ */
+uint32_t vec_pack_fit(float *result, uint32_t result_capacity,
+					  const float *data, uint32_t data_length, float *threshold_p);
