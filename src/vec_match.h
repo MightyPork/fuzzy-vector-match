@@ -89,7 +89,9 @@ uint32_t vec_pack(float *result, uint32_t result_capacity,
 /**
  * Unpack a vector compressed with vec_pack().
  *
- * If returned length exceeds provided buffer capacity, it's an indication that you need to enlarge your buffer.
+ * If returned length exceeds provided buffer capacity, it's an indication that you need
+ * to enlarge your buffer, or increase threshold.
+ *
  * The buffer is never overrun, though.
  *
  * @param result result buffer
