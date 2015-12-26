@@ -3,13 +3,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef struct {
+	uint32_t length; // data length (data & ref length must be equal)
+	uint32_t max_drift_x;
+	float cost_x; // must be > 1
+	float cost_y;
+} vec_hausdorff_cfg_t;
+
+
 /* Example: drift_x 1, offset_y 10, abs_threshold 0.1 */
 typedef struct {
 	uint32_t length; // data length (data & ref length must be equal)
 	uint32_t drift_x; // allowed horizontal drift (Hz drift if values are 1 Hz FFT bins)
 	float offset_y;  // allowed vertical offset (bin amplitude, positive or negative)
 	float abs_threshold; // absolute threshold (to fix preccision errors, also added to offset_y)
-} vec_match_cfg_t;
+} vec_fuzzymatch_cfg_t;
 
 
 typedef struct {
@@ -45,6 +53,24 @@ float pw_get(pack_walker_t *w, uint32_t idx);
 
 
 /**
+ * Get vector's Hausdorff distance from reference
+ *
+ * @param data matched data
+ * @param ref reference data
+ * @param cfg config struct
+ * @return distance metric
+ */
+float vec_hausdorff(const float *data, const float *ref, const vec_hausdorff_cfg_t *cfg);
+
+
+/**
+ * Same as vec_hausdorff(), except the reference vector is packed.
+ */
+float vec_hausdorff_packed(const float *data, const float *ref_packed,
+					   uint32_t ref_p_len, const vec_hausdorff_cfg_t *cfg);
+
+
+/**
  * Match signal to reference, allowing for some offser and noise
  *
  * @param data matched data
@@ -54,16 +80,16 @@ float pw_get(pack_walker_t *w, uint32_t idx);
  * @param abs_match_error error metric calculated from raw data (can be used if envelope match passes)
  * @return envelope match status (match using drift and offset)
  */
-bool vec_match(const float *data, const float *ref, const vec_match_cfg_t *cfg,
+bool vec_fuzzymatch(const float *data, const float *ref, const vec_fuzzymatch_cfg_t *cfg,
 			   float *fuzzy_match_error, float *abs_match_error);
 
 
 /**
  * Match vector against a packed reference vector (without unpacking).
- * Params otherwise the same as vec_match()
+ * Params otherwise the same as vec_fuzzymatch()
  */
-bool vec_match_packed(const float *data, const float *ref_packed, uint32_t ref_p_len,
-					  const vec_match_cfg_t *cfg, float *fuzzy_match_error, float *abs_match_error);
+bool vec_fuzzymatch_packed(const float *data, const float *ref_packed, uint32_t ref_p_len,
+					  const vec_fuzzymatch_cfg_t *cfg, float *fuzzy_match_error, float *abs_match_error);
 
 
 /**

@@ -24,4 +24,9 @@ main.out: src/vec_match.c /usr/include/stdc-predef.h \
  /usr/include/bits/huge_valf.h /usr/include/bits/huge_vall.h \
  /usr/include/bits/inf.h /usr/include/bits/nan.h \
  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
- /usr/include/string.h /usr/include/xlocale.h src/vec_match.h
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-unknown-linux-gnu/5.3.0/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/bits/posix1_lim.h \
+ /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
+ /usr/include/bits/posix2_lim.h /usr/include/string.h \
+ /usr/include/xlocale.h src/vec_match.h

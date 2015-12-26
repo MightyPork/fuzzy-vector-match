@@ -4,21 +4,98 @@
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
+#include <limits.h>
 #include <string.h>
 
 #include "vec_match.h"
 
-#define SQ(a) ((a)*(a))
+#define SQ(a) ((a) * (a))
 
 #define IS_FZERO(f) ((f) < 0.0f)
 #define F2ZERO(f) roundf(-(f))
 #define ZERO2F(z) (0.0f - z)
 
+#define NUM_DIST(a,b) ((a) > (b) ? (a) - (b) : (b) - (a))
 
 
-bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
-				  const vec_match_cfg_t *cfg,
-				  float *fuzzy_match_error, float *abs_match_error, bool packed)
+// ---- HAUSDORFF ----
+
+// real hausdorf should just return the max distance, we sum them all
+float vec_hausdorff_do(const float *data,
+					   const float *ref, uint32_t ref_p_len,
+					   const vec_hausdorff_cfg_t *cfg, bool packed)
+{
+	uint32_t a, b;
+	float f, g; // tmp float
+
+	pack_walker_t w; // walker for packed reference
+
+	if (packed) {
+		pw_init(&w, ref, ref_p_len);
+	}
+
+	float dist_sum = 0;
+
+
+	for (uint32_t i = 0; i < cfg->length; i++) {
+
+		// bounds for base and peak search
+		if (i < cfg->max_drift_x) {
+			a = 0;
+		} else {
+			a = i - cfg->max_drift_x;
+		}
+
+		if (i + cfg->max_drift_x >= cfg->length) {
+			b = cfg->length - 1;
+		} else {
+			b = i + cfg->max_drift_x;
+		}
+
+		// get metric for point
+		float dist = FLT_MAX;
+
+		for (uint32_t j = a; j <= b; j++) {
+			f = packed ? pw_get(&w, j) : ref[j];
+
+			// get X dist
+			g = sqrtf(SQ((f - data[i]) * cfg->cost_y) +
+					  SQ(NUM_DIST(i, j) * cfg->cost_x));
+
+			if (dist > g) dist = g;
+		}
+
+		dist_sum += dist;
+	}
+
+	return dist_sum;
+}
+
+
+
+float vec_hausdorff(const float *data,
+					const float *ref,
+					const vec_hausdorff_cfg_t *cfg)
+{
+	return vec_hausdorff_do(data, ref, cfg->length, cfg, false);
+}
+
+
+
+float vec_hausdorff_packed(const float *data,
+						   const float *ref, uint32_t ref_p_len,
+						   const vec_hausdorff_cfg_t *cfg)
+{
+	return vec_hausdorff_do(data, ref, ref_p_len, cfg, true);
+}
+
+
+
+// ---- FUZZY MATCH ----
+
+bool vec_fuzzymatch_do(const float *data, const float *ref, uint32_t ref_p_len,
+					   const vec_fuzzymatch_cfg_t *cfg,
+					   float *fuzzy_match_error, float *abs_match_error, bool packed)
 {
 	uint32_t a, b;
 	float f; // tmp float
@@ -94,21 +171,21 @@ bool vec_match_do(const float *data, const float *ref, uint32_t ref_p_len,
 
 
 
-bool vec_match(const float *data, const float *ref,
-			   const vec_match_cfg_t *cfg,
-			   float *fuzzy_match_error, float *abs_match_error)
+bool vec_fuzzymatch(const float *data, const float *ref,
+					const vec_fuzzymatch_cfg_t *cfg,
+					float *fuzzy_match_error, float *abs_match_error)
 {
-	return vec_match_do(data, ref, cfg->length, cfg, fuzzy_match_error, abs_match_error, false);
+	return vec_fuzzymatch_do(data, ref, cfg->length, cfg, fuzzy_match_error, abs_match_error, false);
 }
 
 
-
-bool vec_match_packed(const float *data, const float *ref, uint32_t ref_p_len,
-					  const vec_match_cfg_t *cfg,
-					  float *fuzzy_match_error, float *abs_match_error)
+bool vec_fuzzymatch_packed(const float *data, const float *ref, uint32_t ref_p_len,
+						   const vec_fuzzymatch_cfg_t *cfg,
+						   float *fuzzy_match_error, float *abs_match_error)
 {
-	return vec_match_do(data, ref, ref_p_len, cfg, fuzzy_match_error, abs_match_error, true);
+	return vec_fuzzymatch_do(data, ref, ref_p_len, cfg, fuzzy_match_error, abs_match_error, true);
 }
+
 
 
 

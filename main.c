@@ -14,7 +14,7 @@ static float reference[DATA_LEN] = {
 
 static float data[DATA_LEN] = {
 	//0, 10, 20, 30, 40, 50, 50, 35, 15, 15, 0
-	0, 15.7, 0, 0, 0.1, 0.2, 0.1, 10, 24, 6, 3, 2, 0.2, 0.4, 0.5, 0
+	0, 13, 16, 0, 0.1, 0.2, 10, 0, 24, 0, 0, 7, 12, 0.4, 0.5, 0
 };
 
 static float ref_p[REF_LEN];
@@ -75,37 +75,39 @@ int main(void)
 
 	//return 0;
 
-	vec_match_cfg_t cfg = {
+	vec_fuzzymatch_cfg_t cfg = {
 		.length = DATA_LEN,
 		.drift_x = 1,
 		.offset_y = 1,
 		.abs_threshold = 0.1
 	};
 
+
+	vec_hausdorff_cfg_t cfg_hdf = {
+		.length = DATA_LEN,
+		.max_drift_x = 10,
+		.cost_x = 10,
+		.cost_y = 4
+	};
+
+
 	// example
 
 	printf("REF:  ");
 	for (int i = 0; i < DATA_LEN; i++) {
-		printf("%.1f, ", reference[i]);
+		printf("%5.1f, ", reference[i]);
 	}
 	printf("\n");
 
 
 	printf("MEAS: ");
 	for (int i = 0; i < DATA_LEN; i++) {
-		printf("%.1f, ", data[i]);
+		printf("%5.1f, ", data[i]);
 	}
 	printf("\n");
 
 
-	// error metric fields
-	float env_e, abs_e;
-
-	bool ok = vec_match(data, reference, &cfg, &env_e, &abs_e);
-	printf("%s", ok ? "MATCH OK" : "MATCH FAILED");
-	printf("\n");
-
-	printf("Error rate: ENV %.2f, ABS %.2f\n", env_e, abs_e);
+	// --- PACK REFERENCE VECTOR ---
 
 	float thr;
 	int ref_pack_len = vec_pack_auto(ref_p, REF_LEN, reference, DATA_LEN, &thr);
@@ -113,21 +115,36 @@ int main(void)
 	printf("Reference packed with zero threshold %.1f to %d items.\n", thr, ref_pack_len);
 	printf("REF packed:  ");
 	for (int i = 0; i < ref_pack_len; i++) {
-		printf("%.1f, ", ref_p[i]);
+		printf("%5.1f, ", ref_p[i]);
 	}
 	printf("\n");
 
-	pack_walker_t pw;
-	pw_init(&pw, ref_p, ref_pack_len);
 
-	printf("Value #8 = %.1f\n", pw_get(&pw, 8));
-	printf("Value #7 = %.1f\n", pw_get(&pw, 7));
-	printf("Value #15 = %.1f\n", pw_get(&pw, 15));
 
-	printf("Trying packed match\n");
-	ok = vec_match_packed(data, ref_p, ref_pack_len, &cfg, &env_e, &abs_e);
-	printf("%s", ok ? "MATCH OK" : "MATCH FAILED");
+	// error metric fields
+	float env_e, abs_e;
+	bool ok = vec_fuzzymatch(data, reference, &cfg, &env_e, &abs_e);
+	printf("FUZZY: %s", ok ? "MATCH OK" : "MATCH FAILED");
 	printf("\n");
 
 	printf("Error rate: ENV %.2f, ABS %.2f\n", env_e, abs_e);
+
+	ok = vec_fuzzymatch_packed(data, ref_p, ref_pack_len, &cfg, &env_e, &abs_e);
+	printf("PACKED FUZZY: %s", ok ? "MATCH OK" : "MATCH FAILED");
+	printf("\n");
+	printf("Error rate: ENV %.2f, ABS %.2f\n", env_e, abs_e);
+
+
+
+
+
+
+
+	// ---- HAUSDORFF ----
+
+	float hdif = vec_hausdorff(data, reference, &cfg_hdf);
+	printf("HAUSDORFF dist: %.2f\n", hdif);
+
+	float hdif_p = vec_hausdorff_packed(data, ref_p, ref_pack_len, &cfg_hdf);
+	printf("HAUSDORFF dist packed: %.2f\n", hdif_p);
 }
